@@ -68,3 +68,10 @@ CREATE TABLE outfit_items (
 INSERT INTO users (username, password, email) VALUES ('abc', 'mycoolpassword', 'abc@email.com');
 INSERT INTO users (username, password, email) VALUES ('admin', 'root', 'admin@email.com');
 INSERT INTO users (username, password, email) VALUES ('fiddlesticks', 'bibblebap', 'fiddlesticks@email.com');
+
+INSERT INTO friendships (user1_id, user2_id) VALUES (1, 2);
+INSERT INTO friendships (user1_id, user2_id) VALUES (1, 3);
+
+INSERT INTO posts (text, image, user_id) VALUES ('post1', 'post1', 2);
+INSERT INTO posts (text, image, user_id) VALUES ('post2', 'post2', 2);
+INSERT INTO posts (text, image, user_id) VALUES ('post3', 'post3', 3);
