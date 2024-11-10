@@ -1,14 +1,22 @@
 document.getElementById('submit').addEventListener('click', async () => {
     let name = document.getElementById('name').value;
     let category = document.getElementById('category').value;
-    let image = document.querySelector('input[name="image"]:checked').value;
-  
+    let imageFile = document.querySelector('input[name="image"]').files[0];
+
+
+    if (!imageFile) {
+      // Handle no image selected
+      return;
+    }
+
+    let formData = new FormData();
+    formData.append('name', name);
+    formData.append('category', category);
+    formData.append('image', imageFile);
+
     let response = await fetch('/add', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name, category, image })
+      body: formData
     });
   
     let messageDiv = document.getElementById('message');

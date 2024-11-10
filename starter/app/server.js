@@ -1,6 +1,8 @@
 const pg = require("pg");
+const fs = require("fs");
 const express = require("express");
-let cookieParser = require("cookie-parser");
+// let cookieParser = require("cookie-parser");
+const multer = require('multer');
 const app = express();
 
 const port = 3000;
@@ -15,7 +17,21 @@ pool.connect().then(function () {
 
 app.use(express.static("public"));
 app.use(express.json());
-app.use(cookieParser)
+// app.use(cookieParser)
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage: storage })
+
+
 
 // global object for storing tokens
 // in a real app, we'd save them to a db so even if the server exits
@@ -23,15 +39,19 @@ app.use(cookieParser)
 let tokenStorage = {};
 
 
-app.post("/add", async (req, res) => {
-  let { name, category, image } = req.body;
+app.post("/add", upload.single('image'), async (req, res) => {
+  let { name, category} = req.body;
+  const image = req.file;
 
-  if (!isValidInput(name, category, image)) {
-    return res.status(400).send();
-  }
+  const filename = Date.now() + '-' + image.name;
+  const filePath = `public/${filename}`;
+
+  // if (!isValidInput(name, category, image)) {
+  //   return res.status(400).send();
+  // }
 
   let query = `INSERT INTO items (name, category, image) VALUES ($1, $2, $3)`;
-  let values = [name, category, image.toLowerCase() === "yes"];
+  let values = [name, category, true];
 
   try {
     await pool.query(query, values);
