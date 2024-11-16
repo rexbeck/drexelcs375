@@ -9,6 +9,8 @@ const port = 3000;
 const hostname = "localhost";
 
 const env = require("../env.json");
+const path = require('path');
+
 const Pool = pg.Pool;
 const pool = new Pool(env);
 pool.connect().then(function () {
@@ -19,13 +21,13 @@ app.use(express.static("public"));
 app.use(express.json());
 // app.use(cookieParser)
 
-
+let dateFile = Date.now();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'public');
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    cb(null, `${dateFile}-${file.originalname}`);
   }
 });
 
@@ -42,16 +44,16 @@ let tokenStorage = {};
 app.post("/add", upload.single('image'), async (req, res) => {
   let { name, category} = req.body;
   const image = req.file;
-
-  const filename = Date.now() + '-' + image.name;
-  const filePath = `public/${filename}`;
+  const filename = dateFile + '-' + image.originalname;
+  const filePath = `${filename}`;
+  dateFile = Date.now();
 
   // if (!isValidInput(name, category, image)) {
   //   return res.status(400).send();
   // }
 
   let query = `INSERT INTO items (name, category, image) VALUES ($1, $2, $3)`;
-  let values = [name, category, true];
+  let values = [name, category, filePath];
 
   try {
     await pool.query(query, values);
@@ -84,6 +86,12 @@ app.get("/search", async (req, res) => {
 
   try {
     let result = await pool.query(query, values);
+    const publicPath = path.join(__dirname, '..', 'public');
+    result.rows = result.rows.map(item => {
+      const dateName = item      
+      const imageUrl = item.image || null;
+      return { ...item, imageUrl };
+    });
     res.status(200).json({ rows: result.rows });
   } catch (error) {
     console.error(error);

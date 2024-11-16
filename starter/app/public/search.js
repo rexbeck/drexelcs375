@@ -23,7 +23,16 @@ document.getElementById('submit').addEventListener('click', async () => {
   
         nameCell.textContent = item.name;
         categoryCell.textContent = item.category;
-        imageCell.textContent = item.image ? 'Yes' : 'No';
+
+        if (item.imageUrl) {
+          const image = document.createElement('img');
+          image.src = item.imageUrl;
+          image.style.width = '250px';
+          image.style.height = '250px';
+          imageCell.appendChild(image);
+        } else {
+          imageCell.textContent = 'No Image';
+        }
   
         row.appendChild(nameCell);
         row.appendChild(categoryCell);

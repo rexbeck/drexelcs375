@@ -55,7 +55,7 @@ CREATE TABLE items (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
     category VARCHAR(50),
-    image BOOLEAN
+    image VARCHAR(255)
 );
 
 DROP TABLE IF EXISTS outfit_items;
