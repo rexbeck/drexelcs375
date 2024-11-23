@@ -19,15 +19,9 @@ CREATE TABLE items (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
     category VARCHAR(50),
-    image BOOLEAN
+    image VARCHAR(100)
 );
 
-INSERT INTO items (name, category, image) VALUES ('phillies baseball cap', 'hat', true);
-INSERT INTO items (name, category, image) VALUES ('phillies jersey', 'shirt', true);
-INSERT INTO items (name, category, image) VALUES ('eagles sweatshirt', 'jacket', true);
-INSERT INTO items (name, category, image) VALUES ('blue jeans', 'pants', true);
-INSERT INTO items (name, category, image) VALUES ('black dickies', 'pants', true);
-INSERT INTO items (name, category, image) VALUES ('white converse', 'shoes', true);
 
 DROP TABLE IF EXISTS outfits;
 CREATE TABLE outfits (
@@ -41,8 +35,7 @@ CREATE TABLE outfits (
     user_id INTEGER REFERENCES users(id)
 );
 
-INSERT INTO outfits (name, hat, shirt, pants, shoes, user_id) VALUES ('phillies outfit', 1, 2, 4, 6, 2);
-INSERT INTO outfits (name, jacket, pants, shoes, user_id) VALUES ('eagles outfit', 3, 5, 6, 3);
+
 
 DROP TABLE IF EXISTS posts;
 CREATE TABLE posts (
@@ -53,8 +46,7 @@ CREATE TABLE posts (
     user_id INTEGER REFERENCES users(id)
 );
 
-INSERT INTO posts (caption, outfit_id, user_id) VALUES ('LETS GO PHILLIES', 1, 2);
-INSERT INTO posts (caption, outfit_id, user_id) VALUES ('LETS GO EAGLES', 2, 3);
+
 
 DROP TABLE IF EXISTS comments;
 CREATE TABLE comments (

@@ -1,10 +1,11 @@
 const pg = require("pg");
 const fs = require("fs");
 const express = require("express");
-let cookieParser = require("cookie-parser");
+// let cookieParser = require("cookie-parser");
 let argon2 = require("argon2");
 let crypto = require("crypto");
 const app = express();
+const multer = require('multer');
 
 const port = 3000;
 const hostname = "localhost";
@@ -49,9 +50,6 @@ app.post("/add", upload.single('image'), async (req, res) => {
   const filePath = `${filename}`;
   dateFile = Date.now();
 
-  // if (!isValidInput(name, category, image)) {
-  //   return res.status(400).send();
-  // }
 
   let query = `INSERT INTO items (name, category, image) VALUES ($1, $2, $3)`;
   let values = [name, category, filePath];
@@ -88,6 +86,43 @@ app.get("/search", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send(); 
+  }
+});
+
+app.post('/submit-outfit', async (req, res) => {
+  const selectedItems = req.body;
+
+  try {
+    // Extract item IDs and categories from the JSON data
+    const itemsByCategory = {};
+    selectedItems.forEach(item => {
+      itemsByCategory[item.category] = item.id;
+    });
+
+    // Construct the SQL query to insert into the `outfits` table
+    const insertQuery = `
+      INSERT INTO outfits (name, hat, shirt, pants, shoes, user_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id;
+    `;
+
+    const values = [
+      'New Outfit', //TODO: Replace with a desired outfit name
+      itemsByCategory.hat || null,
+      itemsByCategory.shirt || null,
+      itemsByCategory.pants || null,
+      itemsByCategory.shoes || null,
+      //TODO: Replace with the actual user ID
+      1
+    ];
+
+    const result = await pool.query(insertQuery, values);
+    const newOutfitId = result.rows[0].id;
+
+    res.status(201).json({ message: 'Outfit created successfully', outfitId: newOutfitId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error creating outfit' });
   }
 });
 
