@@ -4,6 +4,7 @@ const app = express();
 const port = 3000;
 const hostname = "localhost";
 
+app.use(express.static("public"));
 const functionRoute = require('./routes/function');
 const identityRoute = require('./routes/identity');
 

@@ -51,10 +51,20 @@ function makeToken() {
   }
   
 function validateLogin(body) {
-    if (body.username === undefined || body.password === undefined){
-      return false;
-    }
-    return true;
+  if (body.username === undefined || body.username === "" || 
+      body.password === undefined || body.password === ""){
+    return false;
+  }
+  return true;
+}
+
+function validateCreate(body){
+  if (body.username === undefined || body.username === "" || 
+      body.password === undefined || body.password === "" ||
+      body.email === undefined || body.email === ""){
+    return false;
+  }
+  return true;
 }
 
 /* middleware; check if login token in token storage, if not, 403 response */
@@ -71,14 +81,28 @@ router.post("/create", async (req, res) => {
     let { body } = req;
   
     // TODO validate body is correct shape and type
-    if (!validateLogin(body)) {
+    if (!validateCreate(body)) {
       return res.sendStatus(400); // TODO
     }
   
-    let { username, password } = body;
-    console.log(username, password);
+    let { username, password, email } = body;
+    console.log(username, password, email);
   
-    // TODO check username doesn't already exist
+    let result;
+    try {
+      console.log("Checking if User already exists in database.");
+      result = await pool.query("SELECT * FROM users WHERE username = $1 OR email = $2", 
+        [username, email]
+      );
+    } catch(error){
+      console.log("SELECT FAILED", error);
+      return res.sendStatus(500); // TODO
+    }
+    if (result.rows[0] === undefined){
+      console.log("User does not exist in database. Continuing with account creation.");
+    } else{
+      return res.sendStatus(400);
+    }
     // TODO validate username/password meet requirements
   
     let hash;
@@ -91,8 +115,9 @@ router.post("/create", async (req, res) => {
   
     console.log(hash); // TODO just for debugging
     try {
-      await pool.query("INSERT INTO users (username, password) VALUES ($1, $2)", [
+      await pool.query("INSERT INTO users (username, email, password) VALUES ($1, $2, $3)", [
         username,
+        email,
         hash,
       ]);
     } catch (error) {
