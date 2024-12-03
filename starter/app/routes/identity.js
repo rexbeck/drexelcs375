@@ -1,5 +1,20 @@
+const pg = require("pg");
 const express = require("express");
+const env = require("../../env.json");
+const app = express();
+let cookieParser = require("cookie-parser");
+let argon2 = require("argon2");
+let crypto = require("crypto");
+const Pool = pg.Pool;
+const pool = new Pool(env);
+pool.connect().then(function () {
+  console.log(`Connected to database ${env.database}`);
+});
+
 const router = express.Router();
+router.use(express.static("public"));
+router.use(express.json());
+router.use(cookieParser());
 
 
 // must use same cookie options when setting/deleting a given cookie with res.cookie and res.clearCookie
@@ -36,8 +51,20 @@ function makeToken() {
   }
   
 function validateLogin(body) {
-    // TODO
-    return true;
+  if (body.username === undefined || body.username === "" || 
+      body.password === undefined || body.password === ""){
+    return false;
+  }
+  return true;
+}
+
+function validateCreate(body){
+  if (body.username === undefined || body.username === "" || 
+      body.password === undefined || body.password === "" ||
+      body.email === undefined || body.email === ""){
+    return false;
+  }
+  return true;
 }
 
 /* middleware; check if login token in token storage, if not, 403 response */
@@ -54,14 +81,28 @@ router.post("/create", async (req, res) => {
     let { body } = req;
   
     // TODO validate body is correct shape and type
-    if (!validateLogin(body)) {
+    if (!validateCreate(body)) {
       return res.sendStatus(400); // TODO
     }
   
-    let { username, password } = body;
-    console.log(username, password);
+    let { username, password, email } = body;
+    console.log(username, password, email);
   
-    // TODO check username doesn't already exist
+    let result;
+    try {
+      console.log("Checking if User already exists in database.");
+      result = await pool.query("SELECT * FROM users WHERE username = $1 OR email = $2", 
+        [username, email]
+      );
+    } catch(error){
+      console.log("SELECT FAILED", error);
+      return res.sendStatus(500); // TODO
+    }
+    if (result.rows[0] === undefined){
+      console.log("User does not exist in database. Continuing with account creation.");
+    } else{
+      return res.sendStatus(400);
+    }
     // TODO validate username/password meet requirements
   
     let hash;
@@ -74,8 +115,9 @@ router.post("/create", async (req, res) => {
   
     console.log(hash); // TODO just for debugging
     try {
-      await pool.query("INSERT INTO users (username, password) VALUES ($1, $2)", [
+      await pool.query("INSERT INTO users (username, email, password) VALUES ($1, $2, $3)", [
         username,
+        email,
         hash,
       ]);
     } catch (error) {
@@ -90,11 +132,14 @@ router.post("/create", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   let { body } = req;
-  // TODO validate body is correct shape and type
+  
   if (!validateLogin(body)) {
-    return res.sendStatus(400); // TODO
+    return res.sendStatus(400);
   }
   let { username, password } = body;
+
+  console.log("username:", username);
+  console.log("password:", password);
 
   let result;
   try {
@@ -111,8 +156,8 @@ router.post("/login", async (req, res) => {
   if (result.rows.length === 0) {
     return res.sendStatus(400); // TODO
   }
-  let hash = result.rows[0].password;
-  console.log(username, password, hash);
+  let hash = await argon2.hash(result.rows[0].password);
+  console.log("hash:", hash);
 
   let verifyResult;
   try {
@@ -121,6 +166,7 @@ router.post("/login", async (req, res) => {
     console.log("VERIFY FAILED", error);
     return res.sendStatus(500); // TODO
   }
+  console.log("verifyResult:", verifyResult);
 
   // password didn't match
   console.log(verifyResult);

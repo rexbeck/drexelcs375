@@ -12,12 +12,12 @@
 <p>Welcome to rSquared!</p>
 
 <p><a href="add.html">Add a clothing item to our catalog</a></p>
-<p><a href="outfit.html">Submit an outfit</a></p>
+<p><a href="search.html">Search our catalog</a></p>
 
 
-<h2>Search for clothing</h2>
 
-<p>What kind of clothing are you interested in?</p>
+<h2>Find clothing items to add to your outfit</h2>
+
 
 <div class="form">
 	<div>
@@ -31,17 +31,18 @@
 	</div>
 	<button id="submit">Search for items</button>
 </div>
+<div id="outfitButton"></div>
 
 <div id="message"></div>
 
 <table>
 	<thead>
-		<tr><th>Name</th><th>Category</th><th>Image</th></tr>
+		<tr><th>Name</th><th>Category</th><th>Image</th><th>Outfit</th></tr>
 	</thead>
 	<tbody id="items"></tbody>
 </table>
 
-<script src="search.js"></script>
+<script src="outfit.js"></script>
 
 </body>
 </html>

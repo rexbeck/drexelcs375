@@ -19,7 +19,7 @@ CREATE TABLE items (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
     category VARCHAR(50),
-    image BOOLEAN
+    image VARCHAR(100)
 );
 
 INSERT INTO items (name, category, image) VALUES ('phillies baseball cap', 'hat', true);
