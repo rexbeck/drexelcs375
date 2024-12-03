@@ -2,6 +2,7 @@ const pg = require("pg");
 const express = require("express");
 const env = require("../../env.json");
 const app = express();
+const multer = require('multer');
 const Pool = pg.Pool;
 const pool = new Pool(env);
 pool.connect().then(function () {
@@ -11,6 +12,18 @@ pool.connect().then(function () {
 const router = express.Router();
 app.use(express.static("public"));
 app.use(express.json());
+
+let dateFile = Date.now();
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${dateFile}-${file.originalname}`);
+  }
+});
+const upload = multer({ storage: storage });
+
 
 function isValidInput(name, category, image) {
     if (!name || name.length > 15 || name.length < 1) return false;
@@ -76,6 +89,43 @@ router.get("/feed/:user", async (req, res) => {
         res.status(200).json({data: result.rows});
       });
     });
+});
+
+app.post('/submit-outfit', async (req, res) => {
+  const selectedItems = req.body;
+
+  try {
+    // Extract item IDs and categories from the JSON data
+    const itemsByCategory = {};
+    selectedItems.forEach(item => {
+      itemsByCategory[item.category] = item.id;
+    });
+
+    // Construct the SQL query to insert into the `outfits` table
+    const insertQuery = `
+      INSERT INTO outfits (name, hat, shirt, pants, shoes, user_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id;
+    `;
+
+    const values = [
+      'New Outfit', //TODO: Replace with a desired outfit name
+      itemsByCategory.hat || null,
+      itemsByCategory.shirt || null,
+      itemsByCategory.pants || null,
+      itemsByCategory.shoes || null,
+      //TODO: Replace with the actual user ID
+      1
+    ];
+
+    const result = await pool.query(insertQuery, values);
+    const newOutfitId = result.rows[0].id;
+
+    res.status(201).json({ message: 'Outfit created successfully', outfitId: newOutfitId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error creating outfit' });
+  }
 });
 
 module.exports = router;
