@@ -81,6 +81,27 @@ module.exports = (pool) => {
       });
   });
 
+  router.get("/testscript/:user", async (req, res) => {
+    let script1 = `SELECT follows.user1_id AS userId, follows.user2_id AS posterId, usersettings.is_private AS posterIsPrivate
+    FROM follows
+    INNER JOIN usersettings
+    ON follows.user2_id = usersettings.user_id
+    WHERE follows.user1_id = ${req.params.user}`;
+
+    pool.query(script1).then(result => {
+      console.log("script1", result.rows);
+      /* 
+      TO-DO:
+      Compile list of users who's posts should show up on the feed.
+      1. Go through each row. Check if poster is private.
+      2. If false, add to list of posters
+      3. If true, run a query to see if poster follows user back.
+      Once you have the list of posters, then you can do the query to get all the posts, return all the data, and have front end make the feed.
+      */
+    });
+    res.sendStatus(200);
+  });
+
   router.post('/submit-outfit', async (req, res) => {
     const selectedItems = req.body;
 

@@ -1,6 +1,6 @@
 \c rsquaredcloset
 
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -12,9 +12,9 @@ INSERT INTO users (username, password, email) VALUES ('abc', 'mycoolpassword', '
 INSERT INTO users (username, password, email) VALUES ('admin', 'root', 'admin@email.com');
 INSERT INTO users (username, password, email) VALUES ('fiddlesticks', 'bibblebap', 'fiddlesticks@email.com');
 INSERT INTO users (username, password, email) VALUES ('test', 'test', 'test@email.com');
-INSERT INTO users (username, password, email) VALUES ('coolguy', 'coolpassword', 'abc@email.com');
+INSERT INTO users (username, password, email) VALUES ('coolguy', 'coolpassword', 'coolguy@email.com');
 
-DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS items CASCADE;
 CREATE TABLE items (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
@@ -29,7 +29,7 @@ INSERT INTO items (name, category, image) VALUES ('blue jeans', 'pants', true);
 INSERT INTO items (name, category, image) VALUES ('black dickies', 'pants', true);
 INSERT INTO items (name, category, image) VALUES ('white converse', 'shoes', true);
 
-DROP TABLE IF EXISTS outfits;
+DROP TABLE IF EXISTS outfits CASCADE;
 CREATE TABLE outfits (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100),
@@ -44,7 +44,7 @@ CREATE TABLE outfits (
 INSERT INTO outfits (name, hat, shirt, pants, shoes, user_id) VALUES ('phillies outfit', 1, 2, 4, 6, 2);
 INSERT INTO outfits (name, jacket, pants, shoes, user_id) VALUES ('eagles outfit', 3, 5, 6, 3);
 
-DROP TABLE IF EXISTS posts;
+DROP TABLE IF EXISTS posts CASCADE;
 CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
     caption TEXT,
@@ -56,7 +56,7 @@ CREATE TABLE posts (
 INSERT INTO posts (caption, outfit_id, user_id) VALUES ('LETS GO PHILLIES', 1, 2);
 INSERT INTO posts (caption, outfit_id, user_id) VALUES ('LETS GO EAGLES', 2, 3);
 
-DROP TABLE IF EXISTS comments;
+DROP TABLE IF EXISTS comments CASCADE;
 CREATE TABLE comments (
     id SERIAL PRIMARY KEY,
     text TEXT,
@@ -65,14 +65,14 @@ CREATE TABLE comments (
     post_id INTEGER REFERENCES posts(id)
 );
 
-DROP TABLE IF EXISTS likes;
+DROP TABLE IF EXISTS likes CASCADE;
 CREATE TABLE likes (
     user_id INTEGER REFERENCES users(id),
     post_id INTEGER REFERENCES posts(id),
     PRIMARY KEY (user_id, post_id)
 );
 
-DROP TABLE IF EXISTS follows;
+DROP TABLE IF EXISTS follows CASCADE;
 CREATE TABLE follows (
     user1_id INTEGER REFERENCES users(id),
     user2_id INTEGER REFERENCES users(id),
@@ -89,17 +89,17 @@ INSERT INTO follows (user1_id, user2_id) VALUES (4, 1);
 INSERT INTO follows (user1_id, user2_id) VALUES (4, 2);
 INSERT INTO follows (user1_id, user2_id) VALUES (4, 5);
 
-DROP TABLE IF EXISTS usersettings;
+DROP TABLE IF EXISTS usersettings CASCADE;
 CREATE TABLE usersettings (
-    id id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) UNIQUE NOT NULL,
-    is_private INTEGER NOT NULL
+    is_private boolean NOT NULL
 );
 
-INSERT INTO usersettings (id, user_id, private) VALUES (1, 1, TRUE);
-INSERT INTO usersettings (id, user_id, private) VALUES (2, 2, FALSE);
-INSERT INTO usersettings (id, user_id, private) VALUES (3, 3, TRUE);
-INSERT INTO usersettings (id, user_id, private) VALUES (4, 4, TRUE);
-INSERT INTO usersettings (id, user_id, private) VALUES (5, 5, FALSE);
+INSERT INTO usersettings (user_id, is_private) VALUES (1, TRUE);
+INSERT INTO usersettings (user_id, is_private) VALUES (2, FALSE);
+INSERT INTO usersettings (user_id, is_private) VALUES (3, TRUE);
+INSERT INTO usersettings (user_id, is_private) VALUES (4, TRUE);
+INSERT INTO usersettings (user_id, is_private) VALUES (5, FALSE);
 
 \q
