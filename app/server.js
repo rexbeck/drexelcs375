@@ -22,6 +22,8 @@ if (process.env.NODE_ENV == "production") {
 let app = express();
 app.use(express.json());
 app.use(express.static("public"));
+const functionRouter = require('./routes/function');
+const identityRouter = require('./routes/identity');
 
 // uncomment these to debug
 // console.log(JSON.stringify(process.env, null, 2));
@@ -32,12 +34,8 @@ pool.connect().then(() => {
 	console.log("Connected to db");
 });
 
-
-const functionRoute = require('./routes/function');
-const identityRoute = require('./routes/identity');
-
-app.use('/function', functionRoute(pool));
-app.use('/identity', identityRoute(pool));
+app.use('/function', functionRouter(pool));
+app.use('/identity', identityRouter(pool));
 
 app.listen(port, host, () => {
   console.log(`Listening at: http://${host}:${port}`);

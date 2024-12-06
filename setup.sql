@@ -11,6 +11,8 @@ CREATE TABLE users (
 INSERT INTO users (username, password, email) VALUES ('abc', 'mycoolpassword', 'abc@email.com');
 INSERT INTO users (username, password, email) VALUES ('admin', 'root', 'admin@email.com');
 INSERT INTO users (username, password, email) VALUES ('fiddlesticks', 'bibblebap', 'fiddlesticks@email.com');
+INSERT INTO users (username, password, email) VALUES ('test', 'test', 'test@email.com');
+INSERT INTO users (username, password, email) VALUES ('coolguy', 'coolpassword', 'abc@email.com');
 
 DROP TABLE IF EXISTS items;
 CREATE TABLE items (
@@ -70,14 +72,34 @@ CREATE TABLE likes (
     PRIMARY KEY (user_id, post_id)
 );
 
-DROP TABLE IF EXISTS friendships;
-CREATE TABLE friendships (
+DROP TABLE IF EXISTS follows;
+CREATE TABLE follows (
     user1_id INTEGER REFERENCES users(id),
     user2_id INTEGER REFERENCES users(id),
     PRIMARY KEY (user1_id, user2_id)
 );
 
-INSERT INTO friendships (user1_id, user2_id) VALUES (1, 2);
-INSERT INTO friendships (user1_id, user2_id) VALUES (1, 3);
+INSERT INTO follows (user1_id, user2_id) VALUES (1, 2);
+INSERT INTO follows (user1_id, user2_id) VALUES (1, 3);
+INSERT INTO follows (user1_id, user2_id) VALUES (1, 4);
+INSERT INTO follows (user1_id, user2_id) VALUES (1, 5);
+INSERT INTO follows (user1_id, user2_id) VALUES (2, 1);
+INSERT INTO follows (user1_id, user2_id) VALUES (2, 4);
+INSERT INTO follows (user1_id, user2_id) VALUES (4, 1);
+INSERT INTO follows (user1_id, user2_id) VALUES (4, 2);
+INSERT INTO follows (user1_id, user2_id) VALUES (4, 5);
+
+DROP TABLE IF EXISTS usersettings;
+CREATE TABLE usersettings (
+    id id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) UNIQUE NOT NULL,
+    is_private INTEGER NOT NULL
+);
+
+INSERT INTO usersettings (id, user_id, private) VALUES (1, 1, TRUE);
+INSERT INTO usersettings (id, user_id, private) VALUES (2, 2, FALSE);
+INSERT INTO usersettings (id, user_id, private) VALUES (3, 3, TRUE);
+INSERT INTO usersettings (id, user_id, private) VALUES (4, 4, TRUE);
+INSERT INTO usersettings (id, user_id, private) VALUES (5, 5, FALSE);
 
 \q

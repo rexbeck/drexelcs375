@@ -1,11 +1,7 @@
 const express = require("express");
 const multer = require('multer');
 
-module.exports = (pool) => {
-  const router = express.Router();
-  router.use(express.json());
-
-  let dateFile = Date.now();
+let dateFile = Date.now();
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, 'public');
@@ -22,6 +18,10 @@ module.exports = (pool) => {
     if (!["yes", "no"].includes(image)) return false;
     return true;
   }
+
+module.exports = (pool) => {
+  const router = express.Router();
+  router.use(express.json());
 
   router.post("/add", async (req, res) => {
       let { name, category, image } = req.body;
@@ -63,7 +63,6 @@ module.exports = (pool) => {
   });
 
   router.get("/feed/:user", async (req, res) => {
-      console.log("feed");
       let userId = req.params.user;
       console.log("userId:", userId);
       pool.query(`SELECT user2_id FROM friendships WHERE user1_id = ${userId}`).then(result => {
