@@ -89,43 +89,51 @@ module.exports = (pool) => {
   const router = express.Router();
   router.use(express.json());
 
-  router.post("/add", async (req, res) => {
-      let { name, category, image } = req.body;
-    
-      if (!isValidInput(name, category, image)) {
-        return res.status(400).send();
-      }
-    
-      let query = `INSERT INTO items (name, category, image) VALUES ($1, $2, $3)`;
-      let values = [name, category, image.toLowerCase() === "yes"];
-    
-      try {
-        await pool.query(query, values);
-        res.status(200).send();
-      } catch (error) {
-        console.error(error);
-        res.status(500).send(); 
-      }
+
+  router.post("/add", upload.single('image'), async (req, res) => {
+    let { name, category} = req.body;
+    const image = req.file;
+    const filename = dateFile + '-' + image.originalname;
+    const filePath = `${filename}`;
+    dateFile = Date.now();
+  
+  
+    let query = `INSERT INTO items (name, category, image) VALUES ($1, $2, $3)`;
+    let values = [name, category, filePath];
+  
+    try {
+      await pool.query(query, values);
+      res.status(200).send();
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(); 
+    }
   });
 
   router.get("/search", async (req, res) => {
-      let category = req.query.category?.toLowerCase(); 
-    
-      let query = `SELECT * FROM items`;
-      let values = [];
-    
-      if (category && ["shirt", "pants", "hat"].includes(category)) {
-        query += ` WHERE category = $1`;
-        values.push(category);
-      }
-    
-      try {
-        let result = await pool.query(query, values);
-        res.status(200).json({ rows: result.rows });
-      } catch (error) {
-        console.error(error);
-        res.status(500).send(); 
-      }
+    let category = req.query.category?.toLowerCase(); 
+
+    let query = `SELECT * FROM items`;
+    let values = [];
+
+    if (category && ["shirt", "pants", "hat"].includes(category)) {
+      query += ` WHERE category = $1`;
+      values.push(category);
+    }
+
+    try {
+      let result = await pool.query(query, values);
+      // const publicPath = path.join(__dirname, '..', 'public');
+      result.rows = result.rows.map(item => {
+        // const dateName = item;      
+        const imageUrl = item.image || null;
+        return { ...item, imageUrl };
+      });
+      res.status(200).json({ rows: result.rows });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(); 
+    }
   });
 
   router.get("/feed/:username", async (req, res) => {
