@@ -4,10 +4,40 @@
 	<meta charset="utf-8">
 	<title>rSquared</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
+	<style>
+		.container {
+		  display: block;
+		  gap: 20px;
+		}
+		.cell {
+		  width: 150px;
+		  height: 150px;
+		  background-color: lightblue;
+		  text-align: center;
+		  line-height: 50px;
+		  border: 1px solid #000;
+		}
+		.test {
+			display: flex;
+			border: 1px solid #000;
+		}
+	  </style>
 </head>
 <body>
 
-<h1>feed</h1>
+	<nav class="menu">
+		<ul>
+		  <li><a href="/index.html"">Home</a></li>
+		  <li><a href="/add.html">Add</a></li>
+		  <li><a href="/outfit.html">Outfits</a></li>
+		  <li><a href="/search.html">Search</a></li>
+		  <li><a href="/login.html">Login</a></li>
+		</ul>
+	  </nav>
+
+<h1>rSquared</h1>
+<p id="error"></p>
+<div id="container" class="container"></div>
 
 
 <script src="index.js"></script>
