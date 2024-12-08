@@ -1,11 +1,7 @@
 const express = require("express");
 const multer = require('multer');
 
-module.exports = (pool) => {
-  const router = express.Router();
-  router.use(express.json());
-
-  let dateFile = Date.now();
+let dateFile = Date.now();
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, 'public');
@@ -13,15 +9,85 @@ module.exports = (pool) => {
     filename: (req, file, cb) => {
       cb(null, `${dateFile}-${file.originalname}`);
     }
-  });
-  const upload = multer({ storage: storage });
+});
+const upload = multer({ storage: storage });
 
-  function isValidInput(name, category, image) {
-    if (!name || name.length > 15 || name.length < 1) return false;
-    if (!["shirt", "pants", "hat"].includes(category)) return false;
-    if (!["yes", "no"].includes(image)) return false;
-    return true;
-  }
+function isValidInput(name, category, image) {
+  if (!name || name.length > 15 || name.length < 1) return false;
+  if (!["shirt", "pants", "hat"].includes(category)) return false;
+  if (!["yes", "no"].includes(image)) return false;
+  return true;
+}
+
+function getUserIdQuery(username){
+  let script = `SELECT id 
+  FROM users 
+  WHERE username = '${username}'`;
+  return script;
+}
+
+function getFollowedUsersQuery(user){
+  let script = `SELECT follows.user1_id AS userId, follows.user2_id AS posterId, usersettings.is_private AS posterIsPrivate
+    FROM follows
+    INNER JOIN usersettings
+    ON follows.user2_id = usersettings.user_id
+    WHERE follows.user1_id = ${user}`;
+  return script;
+}
+
+function getMutualsQuery(poster, user){
+  let script = `SELECT *
+  FROM follows
+  WHERE user1_id = ${poster} AND user2_id = ${user}`;
+  return script;
+}
+
+function getPostsInFeedQuery(idList){
+  let script = `SELECT users.username, posts.caption, posts.timestamp, posts.outfit_id, posts.id
+  FROM posts
+  INNER JOIN users
+  ON users.id = posts.user_id
+  WHERE posts.user_id IN (${idList})
+  ORDER BY posts.timestamp DESC`;
+  return script;
+}
+
+function getOutfitQuery(outfit_id){
+  let script = `SELECT outfits.name AS outfit_name,
+    hat_items.image AS hat_image,
+    shirt_items.image AS shirt_image,
+    jacket_items.image AS jacket_image,
+    pants_items.image AS pants_image,
+    shoes_items.image AS shoes_image
+  FROM outfits
+  LEFT JOIN items AS hat_items ON outfits.hat = hat_items.id
+  LEFT JOIN items AS shirt_items ON outfits.shirt = shirt_items.id
+  LEFT JOIN items AS jacket_items ON outfits.jacket = jacket_items.id
+  LEFT JOIN items AS pants_items ON outfits.pants = pants_items.id
+  LEFT JOIN items AS shoes_items ON outfits.shoes = shoes_items.id
+  WHERE outfits.id = ${outfit_id}`;
+  return script;
+}
+
+function getCommentsQuery(postid){
+  let script = `SELECT users.username AS username, comments.text AS comment, comments.timestamp = timestamp
+  FROM comments
+  INNER JOIN users
+  ON comments.user_id = users.id
+  WHERE comments.post_id = ${postid}`;
+  return script;
+}
+
+function getLikeCountQuery(postid){
+  let script = `SELECT Count(*)
+  FROM likes
+  WHERE post_id = ${postid}`;
+  return script;
+}
+
+module.exports = (pool) => {
+  const router = express.Router();
+  router.use(express.json());
 
 
   router.post("/add", upload.single('image'), async (req, res) => {
@@ -70,24 +136,87 @@ module.exports = (pool) => {
     }
   });
 
-  router.get("/feed/:user", async (req, res) => {
-      console.log("feed");
-      let userId = req.params.user;
-      console.log("userId:", userId);
-      pool.query(`SELECT user2_id FROM friendships WHERE user1_id = ${userId}`).then(result => {
-        console.log(`SELECT user2_id FROM friendships WHERE user1_id = ${userId}`);
-        let friends = result.rows;
-        console.log("friends:",friends);
-        let friendIds = friends.map(friend => friend.user2_id);
-        console.log("friendIds:", friendIds);
-        let idListString = friendIds.map(id => `${id}`).join(', ');
-        console.log("idListString:", idListString);
+  router.get("/feed/:username", async (req, res) => {
+    console.log(req.baseUrl + req.url);
+
+    let usersInFeed = [];
+    let postsForFeed = [];
+
+    console.log("Grabbing user id from username");
+    const userIdResults = await pool.query(getUserIdQuery(req.params.username));
+    let userId = userIdResults.rows[0].id;
+
+    console.log("Beginning query for grabbing feed users.");
+    const followedUsers = await pool.query(getFollowedUsersQuery(userId));
+    for (let followedUser of followedUsers.rows){
+      if (followedUser.posterisprivate === false){
+        console.log(`\t\t${followedUser.posterid} has public account`);
+        usersInFeed.push(followedUser.posterid);
+      }
+      else {
+        console.log(`\t\t${followedUser.posterid} has private account, checking if mutual...`);
+        const mutual = await pool.query(getMutualsQuery(followedUser.posterid, userId));
+        if (mutual.rows[0] !== undefined){
+          console.log(`\t\t\t${followedUser.posterid} is mutuals`);
+          usersInFeed.push(followedUser.posterid);
+        }
+        else {
+          console.log(`\t\t\t${followedUser.posterid} is NOT mutuals`);
+        }
+      }
+    }
+    console.log("Finished query for grabbing feed users.");
+
+    let stringIdList = usersInFeed.map(id => `${id}`).join(', ');
+
+    console.log("Beginning query to get post information.");
+    const posts = await pool.query(getPostsInFeedQuery(stringIdList));
+    for(let post of posts.rows){
+      console.log("Compiling Post Object");
+      console.log("\tRetrieving post metadata");
+
+      let postData = {
+        username: post.username,
+        caption: post.caption,
+        timestamp: post.timestamp,
+      };
+
+      console.log("\tRetrieving outfit metadata");
+      const outfit = await pool.query(getOutfitQuery(post.outfit_id));
+      if(outfit.rows[0] !== undefined){
+        postData.outfit = {
+          hat: outfit.rows[0].hat_image,
+          shirt: outfit.rows[0].shirt_image,
+          jacket: outfit.rows[0].jacket_image,
+          pants: outfit.rows[0].pants_image,
+          shoes: outfit.rows[0].pants_image
+        };
+      }
+      else {
+        console.log("\t\tUNDEFINED");
+      }
+
+      console.log("\tRetrieving comments");
+      const comments = await pool.query(getCommentsQuery(post.id));
+      postData.comments = [];
+      for(let comment of comments.rows){
+        let commentData = {
+          username: comment.username,
+          comment: comment.comment,
+          timestamp: comment.timestamp
+        };
+        postData.comments.push(commentData);
+      }
+
+      console.log("\tRetrieving like count");
+      const likes = await pool.query(getLikeCountQuery(post.id));
+      postData.likeCount = likes.rows[0].count;
+
+      postsForFeed.push(postData);
+    }
+    console.log("Finished compiling post information");
     
-        pool.query(`SELECT * FROM posts WHERE user_id IN (${idListString})`).then(result => {
-          console.log(`SELECT * FROM posts WHERE user_id IN (${idListString})`);
-          res.status(200).json({data: result.rows});
-        });
-      });
+    res.status(200).json(postsForFeed);
   });
 
   router.post('/submit-outfit', async (req, res) => {

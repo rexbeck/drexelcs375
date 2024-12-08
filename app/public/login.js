@@ -12,7 +12,7 @@ document.getElementById('submit').addEventListener('click', async () => {
   
     let messageDiv = document.getElementById('message');
     if (response.ok) {
-      window.location.replace("add.html");
+      window.location.replace("index.html");
     } else {
       let message = document.createElement('p');
       message.textContent = 'Something went wrong. Please double check that the username and password you input is correct.';
