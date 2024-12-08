@@ -95,6 +95,7 @@ module.exports = (pool) => {
     const image = req.file;
     const filename = dateFile + '-' + image.originalname;
     const filePath = `${filename}`;
+    console.log(filePath);
     dateFile = Date.now();
   
   
@@ -184,13 +185,23 @@ module.exports = (pool) => {
       console.log("\tRetrieving outfit metadata");
       const outfit = await pool.query(getOutfitQuery(post.outfit_id));
       if(outfit.rows[0] !== undefined){
-        postData.outfit = {
-          hat: outfit.rows[0].hat_image,
-          shirt: outfit.rows[0].shirt_image,
-          jacket: outfit.rows[0].jacket_image,
-          pants: outfit.rows[0].pants_image,
-          shoes: outfit.rows[0].pants_image
-        };
+        postData.outfit = {};
+
+        if (outfit.rows[0].hat_image !== null){
+          postData.outfit.hat = outfit.rows[0].hat_image;
+        }
+        if (outfit.rows[0].shirt_image !== null){
+          postData.outfit.shirt = outfit.rows[0].shirt_image;
+        }
+        if (outfit.rows[0].jacket_image !== null){
+          postData.outfit.jacket = outfit.rows[0].jacket_image;
+        }
+        if (outfit.rows[0].pants_image !== null){
+          postData.outfit.pants = outfit.rows[0].pants_image;
+        }
+        if (outfit.rows[0].shoes_image !== null){
+          postData.outfit.shoes = outfit.rows[0].shoes_image;
+        }
       }
       else {
         console.log("\t\tUNDEFINED");

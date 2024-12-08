@@ -22,12 +22,13 @@ CREATE TABLE items (
     image VARCHAR(100)
 );
 
-INSERT INTO items (name, category, image) VALUES ('phillies baseball cap', 'hat', true);
-INSERT INTO items (name, category, image) VALUES ('phillies jersey', 'shirt', true);
-INSERT INTO items (name, category, image) VALUES ('eagles sweatshirt', 'jacket', true);
-INSERT INTO items (name, category, image) VALUES ('blue jeans', 'pants', true);
-INSERT INTO items (name, category, image) VALUES ('black dickies', 'pants', true);
-INSERT INTO items (name, category, image) VALUES ('white converse', 'shoes', true);
+INSERT INTO items (name, category, image) VALUES ('phillies baseball cap', 'hat', 'phillies-hat.jpg');
+INSERT INTO items (name, category, image) VALUES ('phillies jersey', 'shirt', 'phillies-jersey.jpg');
+INSERT INTO items (name, category, image) VALUES ('eagles sweatshirt', 'jacket', 'eagles-sweatshirt.jpg');
+INSERT INTO items (name, category, image) VALUES ('blue jeans', 'pants', 'blue-jeans.jpg');
+INSERT INTO items (name, category, image) VALUES ('black dickies', 'pants', 'black-dickies.jpg');
+INSERT INTO items (name, category, image) VALUES ('white converse', 'shoes', 'white-converse.jpg');
+INSERT INTO items (name, category, image) VALUES ('black jacket', 'jacket', 'black-jacket.jpg');
 
 DROP TABLE IF EXISTS outfits CASCADE;
 CREATE TABLE outfits (
@@ -43,6 +44,8 @@ CREATE TABLE outfits (
 
 INSERT INTO outfits (name, hat, shirt, pants, shoes, user_id) VALUES ('phillies outfit', 1, 2, 4, 6, 2);
 INSERT INTO outfits (name, jacket, pants, shoes, user_id) VALUES ('eagles outfit', 3, 5, 6, 3);
+INSERT INTO outfits (name, hat, jacket, shirt, pants, shoes, user_id) VALUES ('night on the town', 1, 7, 3, 4, 6, 5);
+
 
 DROP TABLE IF EXISTS posts CASCADE;
 CREATE TABLE posts (
@@ -54,11 +57,11 @@ CREATE TABLE posts (
 );
 
 INSERT INTO posts (caption, outfit_id, user_id) VALUES ('LETS GO PHILLIES', 1, 2);
+INSERT INTO posts (caption, outfit_id, user_id) VALUES ('night on the town B)', 3, 5);
 INSERT INTO posts (caption, outfit_id, user_id) VALUES ('LETS GO EAGLES', 2, 1);
 INSERT INTO posts (caption, outfit_id, user_id) VALUES ('phillies 2', 1, 1);
 INSERT INTO posts (caption, outfit_id, user_id) VALUES ('phillies 3', 1, 5);
 INSERT INTO posts (caption, outfit_id, user_id) VALUES ('eagles 2', 2, 2);
-INSERT INTO posts (caption, outfit_id, user_id) VALUES ('eagles 3', 2, 5);
 
 DROP TABLE IF EXISTS comments CASCADE;
 CREATE TABLE comments (

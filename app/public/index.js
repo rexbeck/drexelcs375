@@ -1,5 +1,6 @@
 let username;
 const container = document.getElementById("container");
+const errorDisplay = document.getElementById("error");
 
 fetch('/identity/isUserLoggedIn')
     .then((response) => response.json())
@@ -8,7 +9,7 @@ fetch('/identity/isUserLoggedIn')
             username = data.username;
             return fetch(`/function/feed/${username}`);
         } else {
-            window.location.replace("login.html");
+            errorDisplay.textContent = "Please sign in or create an account to look at your feed";
             return Promise.reject('User not logged in.');
         }
     })
@@ -29,13 +30,20 @@ fetch('/identity/isUserLoggedIn')
             const outfitDisplay = document.createElement('div');
             outfitDisplay.classList.add('outfit-display');
             newPost.appendChild(outfitDisplay);
-            
-            for (let i = 1; i <= 5; i++) {
-                const cell = document.createElement('div');
-                cell.classList.add('cell');
-                cell.textContent = i;
-                outfitDisplay.appendChild(cell);
+
+            for(let item in outfit){
+                let link = outfit[item];
+                const itemImage = document.createElement('img');
+                itemImage.src = link;
+                outfitDisplay.appendChild(itemImage);
             }
+            
+            // for (let i = 1; i <= 5; i++) {
+            //     const cell = document.createElement('div');
+            //     cell.classList.add('cell');
+            //     cell.textContent = i;
+            //     outfitDisplay.appendChild(cell);
+            // }
 
             const postDataDisplay = document.createElement('div');
             postDataDisplay.classList.add('post-data-display');
@@ -98,11 +106,15 @@ fetch('/identity/isUserLoggedIn')
 
                 commentsDisplay.appendChild(commentCell);
             }
+
             newPost.appendChild(commentsDisplay);
         }
 
     })
-    .catch((error) => console.error('Error fetching request data:', error));
+    .catch((error) => {
+        console.error('Error fetching request data:', error);
+        errorDisplay.textContent = error;
+    });
 
 
 // fetch(`/function/feed/${username}`)
