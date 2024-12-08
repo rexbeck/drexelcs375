@@ -23,6 +23,34 @@ th, td {
 	margin: 1rem 0;
 }
 
+.post-display {
+	border: 1px solid lightgray;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.outfit-display {
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+}
+
+.post-data-display{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 5px;
+}
+
+.post-text {
+	padding: 5px;
+}
+
+.username {
+	padding: 5px;
+	font-weight: bold;
+}
+
 #message {
 	margin: 1rem 0;
 }

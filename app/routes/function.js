@@ -70,7 +70,7 @@ function getOutfitQuery(outfit_id){
 }
 
 function getCommentsQuery(postid){
-  let script = `SELECT users.username AS username, comments.text AS comment, comments.timestamp = timestamp
+  let script = `SELECT users.username AS username, comments.text AS comment, comments.timestamp AS timestamp
   FROM comments
   INNER JOIN users
   ON comments.user_id = users.id
