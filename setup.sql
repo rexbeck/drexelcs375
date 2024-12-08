@@ -54,7 +54,11 @@ CREATE TABLE posts (
 );
 
 INSERT INTO posts (caption, outfit_id, user_id) VALUES ('LETS GO PHILLIES', 1, 2);
-INSERT INTO posts (caption, outfit_id, user_id) VALUES ('LETS GO EAGLES', 2, 3);
+INSERT INTO posts (caption, outfit_id, user_id) VALUES ('LETS GO EAGLES', 2, 1);
+INSERT INTO posts (caption, outfit_id, user_id) VALUES ('phillies 2', 1, 1);
+INSERT INTO posts (caption, outfit_id, user_id) VALUES ('phillies 3', 1, 5);
+INSERT INTO posts (caption, outfit_id, user_id) VALUES ('eagles 2', 2, 2);
+INSERT INTO posts (caption, outfit_id, user_id) VALUES ('eagles 3', 2, 5);
 
 DROP TABLE IF EXISTS comments CASCADE;
 CREATE TABLE comments (
@@ -65,12 +69,26 @@ CREATE TABLE comments (
     post_id INTEGER REFERENCES posts(id)
 );
 
+INSERT INTO comments (text, user_id, post_id) VALUES ('this outfit is dum', 3, 1);
+INSERT INTO comments (text, user_id, post_id) VALUES ('*dumb', 3, 1);
+INSERT INTO comments (text, user_id, post_id) VALUES ('i love eagles', 2, 2);
+INSERT INTO comments (text, user_id, post_id) VALUES ('red looks great on you', 3, 3);
+INSERT INTO comments (text, user_id, post_id) VALUES ('awesome game last night', 5, 3);
+INSERT INTO comments (text, user_id, post_id) VALUES ('i love when they do the thing with the ball', 5, 4);
+INSERT INTO comments (text, user_id, post_id) VALUES ('ball is life', 3, 4);
+INSERT INTO comments (text, user_id, post_id) VALUES ('EAGLESSSSSSSSS', 4, 6);
+
 DROP TABLE IF EXISTS likes CASCADE;
 CREATE TABLE likes (
     user_id INTEGER REFERENCES users(id),
     post_id INTEGER REFERENCES posts(id),
     PRIMARY KEY (user_id, post_id)
 );
+
+INSERT INTO likes (user_id, post_id) VALUES (2, 2);
+INSERT INTO likes (user_id, post_id) VALUES (3, 3);
+INSERT INTO likes (user_id, post_id) VALUES (5, 3);
+INSERT INTO likes (user_id, post_id) VALUES (4, 6);
 
 DROP TABLE IF EXISTS follows CASCADE;
 CREATE TABLE follows (
