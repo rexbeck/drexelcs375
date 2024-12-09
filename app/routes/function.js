@@ -14,7 +14,7 @@ const upload = multer({ storage: storage });
 
 function isValidInput(name, category, image) {
   if (!name || name.length > 15 || name.length < 1) return false;
-  if (!["shirt", "pants", "hat"].includes(category)) return false;
+  if (!["shirt", "pants", "hat", "jacket, shoes"].includes(category)) return false;
   if (!["yes", "no"].includes(image)) return false;
   return true;
 }
@@ -117,7 +117,7 @@ module.exports = (pool) => {
     let query = `SELECT * FROM items`;
     let values = [];
 
-    if (category && ["shirt", "pants", "hat"].includes(category)) {
+    if (category && ["shirt", "pants", "hat", "jacket", "shoes"].includes(category)) {
       query += ` WHERE category = $1`;
       values.push(category);
     }
@@ -232,13 +232,30 @@ module.exports = (pool) => {
 
   router.post('/submit-outfit', async (req, res) => {
     const selectedItems = req.body;
+    
 
     try {
       // Extract item IDs and categories from the JSON data
       const itemsByCategory = {};
-      selectedItems.forEach(item => {
-        itemsByCategory[item.category] = item.id;
+      let uidQuery;
+      selectedItems.forEach((item, index) => {
+        if (index == 0) {
+          // itemsByCategory["user_id"] = item;
+          uidQuery = getUserIdQuery(item);
+          // itemsByCategory["user_id"] = uid;
+          // console.log("UID:", uid);
+          
+        } else if (index == 1) {
+          itemsByCategory["name"] = item;
+          console.log("outfit name:", item);
+
+        } else {
+          itemsByCategory[item.category] = item.id;
+        }
       });
+      let uidresults = await pool.query(uidQuery);
+      let uid = uidresults.rows[0].id;
+      itemsByCategory["user_id"] = uid;
 
       // Construct the SQL query to insert into the `outfits` table
       const insertQuery = `
@@ -248,17 +265,33 @@ module.exports = (pool) => {
       `;
 
       const values = [
-        'New Outfit', //TODO: Replace with a desired outfit name
+        itemsByCategory.name || null, //TODO: Replace with a desired outfit name
         itemsByCategory.hat || null,
         itemsByCategory.shirt || null,
         itemsByCategory.pants || null,
         itemsByCategory.shoes || null,
-        //TODO: Replace with the actual user ID
-        1
+        itemsByCategory.user_id || null
+        
       ];
 
       const result = await pool.query(insertQuery, values);
       const newOutfitId = result.rows[0].id;
+
+
+      const postQuery = `
+      INSERT INTO posts (caption, outfit_id, user_id)
+      VALUES ($1, $2, $3)
+      RETURNING id;
+      `;
+
+      const postValues = [
+        itemsByCategory.name || null,
+        newOutfitId || null,
+        itemsByCategory.user_id || null
+      ];
+
+      const postResult = await pool.query(postQuery, postValues);
+      const newPostId = postResult.rows[0].id;
 
       res.status(201).json({ message: 'Outfit created successfully', outfitId: newOutfitId });
     } catch (error) {

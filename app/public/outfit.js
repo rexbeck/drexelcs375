@@ -1,9 +1,30 @@
+let selectedItems = [];
+
+function getSelectedItems() {
+    return selectedItems;
+}
+
+function pushSelectedItems(item) {
+    selectedItems.push(item);
+}
+
+function clearSelectedItems() {
+    selectedItems = [];
+}
 document.getElementById('submit').addEventListener('click', async () => {
+    let username;
+    let userResponse = await fetch('/identity/isUserLoggedIn');
+    let userData = await userResponse.json();
+    username = userData.username;
+    
+  
+  
     let category = document.getElementById('category').value;
-    let response = await fetch(`/search?category=${category}`);
+    let response = await fetch(`/function/search?category=${category}`);
     let data = await response.json();
     let messageDiv = document.getElementById('message');
     let itemsTableBody = document.getElementById('items');
+    let outfitTable = document.getElementById('outfitTable');
   
     messageDiv.textContent = '';
     itemsTableBody.innerHTML = '';
@@ -14,8 +35,7 @@ document.getElementById('submit').addEventListener('click', async () => {
       messageDiv.appendChild(message);
   
     } else {
-      // Create an empty array to store selected items
-      let selectedItems = [];
+      // let selectedItems = [];
   
       data.rows.forEach(item => {
         let row = document.createElement('tr');
@@ -41,7 +61,11 @@ document.getElementById('submit').addEventListener('click', async () => {
         addToGroupButton.textContent = 'Add to Group';
         addToGroupButton.addEventListener('click', () => {
           // Add the item to the selectedItems array
-          selectedItems.push(item);
+          // selectedItems.push(item);
+          pushSelectedItems(item);
+          let li = document.createElement("li");
+          li.textContent = item.name;
+          outfitTable.appendChild(li);
         });
   
         buttonCell.appendChild(addToGroupButton);
@@ -55,24 +79,45 @@ document.getElementById('submit').addEventListener('click', async () => {
       });
   
       // Create a new button to submit the selected items
-      let submitGroupButton = document.createElement('button');
+      // let submitGroupButton = document.createElement('button');
+      let submitGroupButton = document.getElementById("outfitSubmitButton");
       submitGroupButton.textContent = 'Submit Outfit';
       submitGroupButton.addEventListener('click', async () => {
-        if (selectedItems.length === 0) {
+
+        let subItems = getSelectedItems();
+        if (subItems.length === 0) {
           alert('No items selected in the group!');
           return;
         }
+
+        let outfitName = document.getElementById("name").value;
+        subItems.unshift(outfitName);
+        subItems.unshift(username);
+
+    
   
         // Send a POST request to the server with the selected items
-        let response = await fetch('/submit-outfit', {
+        let response = await fetch('/function/submit-outfit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(selectedItems)
+          body: JSON.stringify(subItems)
         });
+
+        if (response.ok) {
+          let message = document.createElement('p');
+          message.textContent = 'Success';
+          messageDiv.appendChild(message);
+        } else {
+          let message = document.createElement('p');
+          message.textContent = 'Bad Request';
+          messageDiv.appendChild(message);
+        }
   
-        // Handle the response from the server (e.g., display success message)
         let data = await response.json();
-        console.log(data); // Replace with appropriate handling of server response
+        while (outfitTable.firstChild) {
+          outfitTable.removeChild(outfitTable.firstChild);
+        }
+        clearSelectedItems()
       });
   
       // Add the submit group button to the page (consider placement)
